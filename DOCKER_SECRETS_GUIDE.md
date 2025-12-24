@@ -24,6 +24,17 @@ git push -u origin main
 ## 1. GitHub Secrets Setup
 To enable the automatic building and pushing of your Docker image, you need to configure "Secrets" in your GitHub repository settings.
 
+### How to get your Docker Credentials:
+1.  **Register/Login**: Go to [hub.docker.com](https://hub.docker.com/) and sign up or log in.
+2.  **Username**: This is your Docker ID (displayed in the top right corner).
+3.  **Password**: You can use your login password, but it's **highly recommended** to use an Access Token:
+    *   Click your profile icon -> **Account Settings**.
+    *   Go to **Security** -> **New Access Token**.
+    *   Description: "GitHub Actions".
+    *   Access permissions: "Read, Write, Delete".
+    *   Copy the generated token string. Use this as your `DOCKER_PASSWORD`.
+
+### Add them to GitHub:
 1.  Go to your GitHub Repository -> **Settings** -> **Secrets and variables** -> **Actions**.
 2.  Click **New repository secret**.
 3.  Add the following secrets:
@@ -31,7 +42,7 @@ To enable the automatic building and pushing of your Docker image, you need to c
 | Secret Name       | Description                                      | Used For               |
 | ----------------- | ------------------------------------------------ | ---------------------- |
 | `DOCKER_USERNAME` | Your Docker Hub username                         | CI/CD Pipeline (Login) |
-| `DOCKER_PASSWORD` | Your Docker Hub password (or Access Token)       | CI/CD Pipeline (Login) |
+| `DOCKER_PASSWORD` | Your Docker Hub Access Token (recommended)       | CI/CD Pipeline (Login) |
 
 ### Application Secrets (Runtime)
 When you runs the container, you will need to provide these environment variables (either via an `.env` file or command line flags). You generally **do not** need these for the *Build* step, but you will need them to *Run* the app.
