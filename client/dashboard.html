@@ -1,0 +1,1030 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registry dApp - Analytics Dashboard</title>
+    <!-- Ethers.js -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts for better typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #94a3b8;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding-bottom: 40px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navbar */
+        nav {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            margin-bottom: 32px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(8px);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .logo-icon {
+            font-size: 24px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: var(--shadow);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border-color: var(--border);
+            color: var(--text-muted);
+        }
+
+        .btn-secondary:hover {
+            background: var(--background);
+            color: var(--text-main);
+        }
+
+        .btn.connected {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        /* Real-time Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .stat-card:nth-child(2)::after {
+            background: var(--success);
+        }
+
+        .stat-card:nth-child(3)::after {
+            background: var(--text-main);
+        }
+
+        .stat-card:nth-child(4)::after {
+            background: var(--warning);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1;
+        }
+
+        .stat-meta {
+            font-size: 13px;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Analytics Section */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 1024px) {
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* Beautiful Table */
+        .table-wrapper {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 40px;
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(248, 250, 252, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        thead th {
+            padding: 16px 24px;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: var(--background);
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.1s;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        td {
+            padding: 16px 24px;
+            font-size: 14px;
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        /* Student Profile Cell */
+        .student-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .student-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .student-name {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .student-id {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Status Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-graduated {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-suspended {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-diploma {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+
+        /* Grid Layout for Forms */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        input,
+        select {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text-main);
+            transition: border-color 0.2s;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        }
+
+        .pulse {
+            animation: pulse-animation 2s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--surface);
+            border-left: 4px solid var(--primary);
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-color: var(--success);
+        }
+
+        .toast.error {
+            border-color: var(--danger);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav>
+        <div class="container nav-content">
+            <div class="brand">
+                <span style="font-size: 28px;">🎓</span>
+                <div>
+                    <div>Student Registry AI</div>
+                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 400;">Powered by Polygon Amoy
+                    </div>
+                </div>
+            </div>
+            <div class="actions">
+                <div style="text-align: right; font-size: 12px; color: var(--text-muted); margin-right: 12px;">
+                    <div class="pulse"
+                        style="width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; margin-right: 4px;">
+                    </div>
+                    System Online
+                </div>
+                <button class="btn btn-secondary" onclick="toggleTheme()">🌓 Theme</button>
+                <button class="btn btn-primary" id="connectBtn" onclick="connectWallet()">
+                    <span>🔗</span> Connect Wallet
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Stats Section -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Students</div>
+                <div class="stat-value" id="totalStudents">-</div>
+                <div class="stat-meta">
+                    <span>📈</span> Global Registry
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Currently Enrolled</div>
+                <div class="stat-value" id="enrolledStudents">-</div>
+                <div class="stat-meta">
+                    <span style="color:var(--success)">●</span> Active Status
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Graduates</div>
+                <div class="stat-value" id="graduatedStudents">-</div>
+                <div class="stat-meta">
+                    <span>🎓</span> Alumni
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">NFT Diplomas</div>
+                <div class="stat-value" id="diplomaCount">-</div>
+                <div class="stat-meta">
+                    <span>⛓️</span> On-Chain Assets
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Plan -->
+        <div class="analytics-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Student Distribution</h3>
+                </div>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Grade Performance</h3>
+                </div>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="gradeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Actions -->
+        <div class="dashboard-grid">
+            <!-- Left: Add Student Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Add New Student</h3>
+                </div>
+                <form id="addStudentForm" onsubmit="addStudent(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>ID</label>
+                            <input type="number" id="studentId" placeholder="e.g. 2024001" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="studentName" placeholder="John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Course</label>
+                            <input type="text" id="studentCourse" placeholder="Computer Science" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth</label>
+                            <input type="date" id="studentDob" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Avg. Grade</label>
+                            <input type="number" id="studentGrade" min="0" max="100" placeholder="0-100" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="studentStatus" required>
+                                <option value="Active">Active</option>
+                                <option value="Graduated">Graduated</option>
+                                <option value="Suspended">Suspended</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Auto Mint Section -->
+                    <div
+                        style="margin-top: 20px; padding: 16px; background: rgba(79, 70, 229, 0.05); border: 1px dashed var(--primary); border-radius: 8px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="mintDiplomaOnAdd" style="width: auto;">
+                            <div>
+                                <strong style="color: var(--primary);">Auto-Mint NFT Diploma</strong>
+                                <div style="font-size: 12px; color: var(--text-muted);">Generates and transfers a
+                                    diploma NFT immediately</div>
+                            </div>
+                        </label>
+                        <div id="diplomaUploadSection" style="display: none; margin-top: 12px;">
+                            <input type="file" id="diplomaFileOnAdd" accept=".pdf,.png,.jpg" style="width: 100%;">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="addStudentBtn"
+                        style="width: 100%; margin-top: 24px;">
+                        + Add Registry Entry
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right: Quick Actions -->
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <!-- Quick Lookup -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Quick Search</h3>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="lookupId" placeholder="Enter Student ID" style="flex:1">
+                        <button class="btn btn-secondary" onclick="lookupStudent()">🔍</button>
+                    </div>
+                    <div id="lookupResult" style="margin-top: 16px;"></div>
+                </div>
+
+                <!-- Mint Manual -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Manual Mint</h3>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <input type="number" id="diplomaStudentId" placeholder="Student ID">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <input type="file" id="diplomaFile" onchange="e => selectedFile = e.target.files[0]">
+                    </div>
+                    <button class="btn btn-secondary" onclick="mintDiploma()" style="width: 100%;">Mint NFT</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Beautiful Table -->
+        <div class="table-wrapper">
+            <div class="table-header">
+                <h3 class="card-title">Registered Students</h3>
+                <button class="btn btn-secondary" onclick="loadStudents()" style="padding: 6px 12px; font-size: 12px;">
+                    🔄 Refresh Data
+                </button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="studentsTable">
+                    <thead>
+                        <tr>
+                            <th>Student Profile</th>
+                            <th>Course</th>
+                            <th>Grade</th>
+                            <th>Status</th>
+                            <th>Diploma NFT</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                Loading registry data...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast">
+        <span id="toastMessage">Notification</span>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+        // Contract address for reference
+        const CONTRACT_ADDRESS_REF = '0x0955E398C008089dE3515799F294711ca4cF0E33';
+
+        // State
+        let selectedFile = null;
+        let selectedFileOnAdd = null;
+        let userAddress = null;
+        let charts = {};
+
+        // --- Core Logic ---
+
+        async function init() {
+            loadStats();
+            loadStudents();
+            // Real-time polling every 10 seconds for stats
+            setInterval(() => {
+                loadStats();
+                // Optionally silent refresh of student list if needed, but might disturb UI interaction
+            }, 10000);
+
+            // Set toggle listener
+            document.getElementById('mintDiplomaOnAdd').addEventListener('change', (e) => {
+                document.getElementById('diplomaUploadSection').style.display = e.target.checked ? 'block' : 'none';
+            });
+        }
+
+        async function connectWallet() {
+            if (!window.ethereum) return showToast('MetaMask not installed', 'error');
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                userAddress = accounts[0];
+                const btn = document.getElementById('connectBtn');
+                btn.innerHTML = '<span>🦊</span> ' + userAddress.substring(0, 6) + '...';
+                btn.classList.add('connected');
+                showToast('Wallet connected successfully', 'success');
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API_URL}/stats`);
+                const data = await res.json();
+
+                // Update text stats
+                animateValue('totalStudents', data.totalStudents);
+                animateValue('enrolledStudents', data.enrolledCount);
+                animateValue('graduatedStudents', data.graduatedCount);
+                animateValue('diplomaCount', data.withDiplomaCount);
+
+                // Update Charts
+                updateCharts(data);
+
+            } catch (e) {
+                console.error("Stats load fail:", e);
+            }
+        }
+
+        function animateValue(id, value) {
+            const el = document.getElementById(id);
+            if (el.textContent === value.toString()) return;
+            el.textContent = value;
+            el.classList.add('pulse'); // Re-trigger visual cue if implemented
+        }
+
+        function updateCharts(statsData) {
+            // Check if we have raw student data for detailed charts, 
+            // if not we rely on the counters we have.
+            //Ideally we grab all students to enable detailed analytics
+        }
+
+        async function loadStudents() {
+            try {
+                const res = await fetch(`${API_URL}/students`);
+                const data = await res.json();
+                const students = data.students || [];
+
+                renderStudentTable(students);
+                renderAnalytics(students);
+
+            } catch (e) {
+                console.error("Students list error", e);
+            }
+        }
+
+        function renderAnalytics(students) {
+            // Prepare Data
+            const statusCount = { Active: 0, Graduated: 0, Suspended: 0 };
+            const grades = [];
+
+            students.forEach(s => {
+                if (statusCount[s.status] !== undefined) statusCount[s.status]++;
+                grades.push(parseInt(s.averageGrade));
+            });
+
+            // Render Status Chart (Pie)
+            const ctx1 = document.getElementById('statusChart').getContext('2d');
+            if (charts.status) charts.status.destroy();
+
+            charts.status = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Active', 'Graduated', 'Suspended'],
+                    datasets: [{
+                        data: [statusCount.Active, statusCount.Graduated, statusCount.Suspended],
+                        backgroundColor: ['#10b981', '#4f46e5', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right' } }
+                }
+            });
+
+            // Render Grade Distribution (Bar)
+            // Group grades into bins: 0-20, 21-40, 41-60, 61-80, 81-100
+            const bins = [0, 0, 0, 0, 0];
+            grades.forEach(g => {
+                if (g <= 20) bins[0]++;
+                else if (g <= 40) bins[1]++;
+                else if (g <= 60) bins[2]++;
+                else if (g <= 80) bins[3]++;
+                else bins[4]++;
+            });
+
+            const ctx2 = document.getElementById('gradeChart').getContext('2d');
+            if (charts.grades) charts.grades.destroy();
+
+            charts.grades = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+                    datasets: [{
+                        label: 'Student Grades',
+                        data: bins,
+                        backgroundColor: '#6366f1',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        function renderStudentTable(students) {
+            const tbody = document.querySelector('#studentsTable tbody');
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">No records found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = students.map(s => `
+                <tr>
+                    <td>
+                        <div class="student-profile">
+                            <div class="avatar">${getInitials(s.name)}</div>
+                            <div class="student-details">
+                                <span class="student-name">${s.name}</span>
+                                <span class="student-id">ID: ${s.id}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${s.course}</td>
+                    <td>
+                         <div style="display:flex; align-items:center; gap:8px;">
+                            <div style="width:60px; height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden;">
+                                <div style="width:${s.averageGrade}%; height:100%; background:${getGradeColor(s.averageGrade)}"></div>
+                            </div>
+                            <span style="font-size:12px; font-weight:600;">${s.averageGrade}%</span>
+                         </div>
+                    </td>
+                    <td><span class="badge badge-${s.status.toLowerCase()}">${s.status}</span></td>
+                    <td>
+                        ${s.diplomaTokenId !== '0'
+                    ? `<span class="badge badge-diploma">Token #${s.diplomaTokenId}</span>`
+                    : '<span style="color:var(--text-muted);font-size:12px;">Not minted</span>'}
+                    </td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="viewDetails(${s.id})" style="padding:4px 8px; font-size:11px;">View</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // --- Helpers ---
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+
+        function getGradeColor(grade) {
+            if (grade >= 80) return '#10b981';
+            if (grade >= 60) return '#4f46e5';
+            if (grade >= 40) return '#f59e0b';
+            return '#ef4444';
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const txt = document.getElementById('toastMessage');
+            txt.textContent = msg;
+            toast.className = `toast show ${type}`;
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme');
+            document.body.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+        }
+
+        // --- Actions ---
+
+        async function addStudent(e) {
+            e.preventDefault();
+            const btn = document.getElementById('addStudentBtn');
+            const originalText = btn.innerHTML;
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
+
+            try {
+                const data = {
+                    id: document.getElementById('studentId').value,
+                    name: document.getElementById('studentName').value,
+                    course: document.getElementById('studentCourse').value,
+                    dateOfBirth: document.getElementById('studentDob').value,
+                    averageGrade: document.getElementById('studentGrade').value,
+                    status: document.getElementById('studentStatus').value
+                };
+
+                const res = await fetch(`${API_URL}/add-student`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.message);
+
+                showToast('Student added successfully!', 'success');
+
+                // Handle Auto Mint
+                if (document.getElementById('mintDiplomaOnAdd').checked) {
+                    if (!userAddress) {
+                        showToast('Student added but Mint skipped (Wallet not connected)', 'warning');
+                    } else {
+                        // Proceed with mint logic (reusing old logic concepts)
+                        await performMint(data.id, document.getElementById('diplomaFileOnAdd').files[0]);
+                    }
+                }
+
+                document.getElementById('addStudentForm').reset();
+                loadStudents(); // Refresh table
+                loadStats();    // Refresh stats
+
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function performMint(studentId, file) {
+            try {
+                showToast('Minting Diploma NFT...', 'info');
+
+                let fileData = null;
+                let fileName = null;
+                let fileType = null;
+
+                if (file) {
+                    fileName = file.name;
+                    fileType = file.type;
+                    fileData = await new Promise((resolve) => {
+                        const r = new FileReader();
+                        r.onload = e => resolve(e.target.result);
+                        r.readAsDataURL(file);
+                    });
+                }
+
+                const payload = {
+                    studentId: parseInt(studentId),
+                    fileData, fileName, fileType,
+                    recipientAddress: userAddress
+                };
+
+                const res = await fetch(`${API_URL}/mint-diploma`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.message);
+
+                showToast(`Diploma Minted! Token ID: ${json.tokenId}`, 'success');
+                loadStudents(); // Refresh to show badge
+
+            } catch (e) {
+                showToast('Mint Failed: ' + e.message, 'error');
+            }
+        }
+
+        async function mintDiploma() {
+            const id = document.getElementById('diplomaStudentId').value;
+            const file = document.getElementById('diplomaFile').files[0];
+            if (!id) return showToast('Please enter a Student ID', 'error');
+
+            await performMint(id, file);
+        }
+
+        async function lookupStudent() {
+            const id = document.getElementById('lookupId').value;
+            if (!id) return;
+            try {
+                const res = await fetch(`${API_URL}/student/${id}`);
+                const s = await res.json();
+                const div = document.getElementById('lookupResult');
+
+                if (s.error) {
+                    div.innerHTML = `<div style="color:var(--danger)">Student not found</div>`;
+                } else {
+                    div.innerHTML = `
+                        <div style="padding:12px; background:var(--background); border-radius:8px; font-size:13px;">
+                            <strong>${s.name}</strong> (${s.status})<br>
+                            Avg: ${s.averageGrade}%<br>
+                            Diploma: ${s.diplomaTokenId !== '0' ? 'Minted' : 'None'}
+                        </div>
+                    `;
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // Initialize
+        init();
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,149 @@
+═══════════════════════════════════════════════════════════════
+  STUDENT REGISTRY dAPP - QUICK SETUP GUIDE
+═══════════════════════════════════════════════════════════════
+
+📍 LOCATION: C:\Users\Dell\StudentRegistryNew
+
+═══════════════════════════════════════════════════════════════
+STEP 1: CREATE .env FILE
+═══════════════════════════════════════════════════════════════
+
+Create a file named ".env" in the project folder with this content:
+
+INFURA_API_KEY=0d18f0546cc143b39ce1d9d05646772b
+PRIVATE_KEY=928f6d205c82c514d75fa588c71ee3101976c57ea6ae44bcf29c23a9f7690d9c
+CONTRACT_ADDRESS=
+PORT=3000
+
+(Leave CONTRACT_ADDRESS empty for now - we'll fill it after deployment)
+
+═══════════════════════════════════════════════════════════════
+STEP 2: OPEN TERMINAL IN PROJECT FOLDER
+═══════════════════════════════════════════════════════════════
+
+1. Open PowerShell
+2. Type: cd C:\Users\Dell\StudentRegistryNew
+3. Press Enter
+
+═══════════════════════════════════════════════════════════════
+STEP 3: COMPILE CONTRACT
+═══════════════════════════════════════════════════════════════
+
+Type: npm run compile
+
+Wait for it to finish (should say "Compiled successfully")
+
+═══════════════════════════════════════════════════════════════
+STEP 4: DEPLOY CONTRACT
+═══════════════════════════════════════════════════════════════
+
+Type: npm run deploy
+
+IMPORTANT: Copy the contract address that appears!
+Example: "StudentRegistry deployed to: 0x1234..."
+
+═══════════════════════════════════════════════════════════════
+STEP 5: UPDATE .env FILE
+═══════════════════════════════════════════════════════════════
+
+1. Open the .env file
+2. Paste the contract address after CONTRACT_ADDRESS=
+3. Save the file
+
+Example:
+CONTRACT_ADDRESS=0x1234567890abcdef1234567890abcdef12345678
+
+═══════════════════════════════════════════════════════════════
+STEP 6: START SERVER
+═══════════════════════════════════════════════════════════════
+
+Type: npm start
+
+You should see:
+"🚀 Server running on http://localhost:3000"
+
+⚠️ KEEP THIS TERMINAL WINDOW OPEN!
+
+═══════════════════════════════════════════════════════════════
+STEP 7: OPEN DASHBOARD
+═══════════════════════════════════════════════════════════════
+
+Option 1: Double-click dashboard.html in File Explorer
+Option 2: Open browser and go to:
+         file:///C:/Users/Dell/StudentRegistryNew/client/dashboard.html
+
+═══════════════════════════════════════════════════════════════
+STEP 8: GET TESTNET MATIC (FOR GAS)
+═══════════════════════════════════════════════════════════════
+
+1. Go to: https://faucet.polygon.technology/
+2. Select "Polygon Amoy"
+3. Enter your wallet address (from MetaMask)
+4. Request test tokens
+
+You need MATIC in your wallet to pay for gas fees!
+
+═══════════════════════════════════════════════════════════════
+HOW TO USE THE APP
+═══════════════════════════════════════════════════════════════
+
+1. CONNECT WALLET
+   - Click "Connect Wallet" button
+   - Approve in MetaMask
+
+2. ADD STUDENT
+   - Fill the form with student info
+   - Click "Add Student"
+   - Wait for confirmation
+
+3. VIEW STUDENTS
+   - Click "Refresh List" to see all students
+   - Use "Quick Lookup" to search by ID
+
+4. MINT DIPLOMA
+   - Enter Student ID
+   - Upload a PDF/image file
+   - Click "Mint Diploma NFT"
+   - Save the Token ID that appears
+
+5. TRANSFER DIPLOMA
+   - Enter Token ID
+   - Enter student's wallet address
+   - Click "Transfer to Student"
+   - Student will see NFT in MetaMask!
+
+═══════════════════════════════════════════════════════════════
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+❌ "Contract not initialized"
+   → Check .env file has CONTRACT_ADDRESS
+   → Restart server after updating .env
+
+❌ "Transaction failed"
+   → Get testnet MATIC from faucet
+   → Make sure wallet has enough MATIC
+
+❌ Server won't start
+   → Check if port 3000 is in use
+   → Change PORT in .env to 3001
+
+❌ Can't connect wallet
+   → Install MetaMask extension
+   → Make sure you're on Polygon Amoy network
+
+═══════════════════════════════════════════════════════════════
+IMPORTANT REMINDERS
+═══════════════════════════════════════════════════════════════
+
+✅ This is TESTNET - no real money
+✅ Keep server running while using app
+✅ Save your contract address
+✅ Never share your private key
+✅ Get testnet MATIC from faucet
+
+═══════════════════════════════════════════════════════════════
+GOOD LUCK! 🚀
+═══════════════════════════════════════════════════════════════
+
+

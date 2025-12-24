@@ -1,0 +1,12 @@
+{
+  "name": "diploma_2001",
+  "description": "Student diploma NFT (Local Dev)",
+  "image": "http://localhost:3000/uploads/diploma_2001_afc2f13b258807cb.png",
+  "external_url": "http://localhost:3000/uploads/diploma_2001_afc2f13b258807cb.png",
+  "attributes": [
+    {
+      "trait_type": "Type",
+      "value": "image/jpeg"
+    }
+  ]
+}

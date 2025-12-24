@@ -1,0 +1,36 @@
+name: Docker Build & Push
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        # Only login if secrets are available
+        if: github.event_name != 'pull_request' && secrets.DOCKER_USERNAME != ''
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' && secrets.DOCKER_USERNAME != '' }}
+          # Replace 'your-username' below if not using secrets or for local testing
+          tags: ${{ secrets.DOCKER_USERNAME }}/student-registry-dapp:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
